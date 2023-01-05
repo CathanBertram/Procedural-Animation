@@ -23,6 +23,7 @@ public class Follower : MonoBehaviour
         }
 
         direction = (target.transform.position - transform.position).normalized;
+        direction.y = 0;
         finalRot = Quaternion.LookRotation(transform.position + direction * 1000f, Vector3.up);
     }
 }
