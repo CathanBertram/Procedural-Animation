@@ -28,12 +28,13 @@ namespace Assets.Stage1.Scripts
         [SerializeField] private float completeLength;
         public float CompleteLength => completeLength;
         private Vector3[] bonePositions;
-        private Vector3[] boneRotations;
+        private Quaternion[] boneRotations;
         private Vector3[] boneStartDirection;
         private Quaternion[] boneStartRotation;
         public RotationalConstraint[] constraints;
         private Quaternion targetStartRotation;
         private bool initialised = false;
+        public Transform pole;
 
         private Vector3 targetPos;
         private Quaternion targetRot;
@@ -89,19 +90,19 @@ namespace Assets.Stage1.Scripts
             }
 
             //Initialize Arrays
-            if (bones == null)
+            if (bones == null || bones.Count() != chainLength + 1)
                 bones = new Transform[chainLength + 1];
-            if (bonePositions == null)
+            if (bonePositions == null || bonePositions.Count() != chainLength + 1)
                 bonePositions = new Vector3[chainLength + 1];
-            if(boneRotations == null)
-                boneRotations = new Vector3[chainLength + 1];
-            if(boneLengths == null)
+            if(boneRotations == null || boneRotations.Count() != chainLength + 1)
+                boneRotations = new Quaternion[chainLength + 1];
+            if(boneLengths == null || boneLengths.Count() != chainLength + 1)
                 boneLengths = new float[chainLength + 1];
-            if(boneStartDirection == null)
+            if(boneStartDirection == null || boneStartDirection.Count() != chainLength + 1)
                 boneStartDirection = new Vector3[chainLength + 1];
-            if(boneStartRotation == null)
+            if(boneStartRotation == null || boneStartRotation.Count() != chainLength + 1)
                 boneStartRotation = new Quaternion[chainLength + 1];
-            if(constraints == null)
+            if(constraints == null || constraints.Count() != chainLength + 1)
                 constraints = new RotationalConstraint[chainLength + 1];
 
             //Create Target
@@ -185,6 +186,19 @@ namespace Assets.Stage1.Scripts
                     break;
             }
 
+            if (pole != null)
+            {
+                var polePosition = GetPositionRelativeToRoot(pole);
+                for (int i = 1; i < bonePositions.Length - 1; i++)
+                {
+                    var plane = new Plane(bonePositions[i + 1] - bonePositions[i - 1], bonePositions[i - 1]);
+                    var projectedPole = plane.ClosestPointOnPlane(polePosition);
+                    var projectedBone = plane.ClosestPointOnPlane(bonePositions[i]);
+                    var angle = Vector3.SignedAngle(projectedBone - bonePositions[i - 1], projectedPole - bonePositions[i - 1], plane.normal);
+                    bonePositions[i] = Quaternion.AngleAxis(angle, plane.normal) * (bonePositions[i] - bonePositions[i - 1]) + bonePositions[i - 1];
+                }
+            }
+
             End();
         }
 
@@ -199,7 +213,6 @@ namespace Assets.Stage1.Scripts
             for (int i = 0; i < bones.Count(); i++)
             {
                 bonePositions[i] = GetPositionRelativeToRoot(bones[i]);
-                boneRotations[i] = GetEulerRotationRelativeToRoot(bones[i]);
             }
             targetPos = GetPositionRelativeToRoot(target.transform);
             targetRot = GetRotationRelativeToRoot(target.transform);
@@ -231,7 +244,7 @@ namespace Assets.Stage1.Scripts
                 else
                     SetRotationRelativeToRoot(bones[i], Quaternion.FromToRotation(boneStartDirection[i], bonePositions[i + 1] - bonePositions[i]) * Quaternion.Inverse(boneStartRotation[i]));
                 SetPositionRelativeToRoot(bones[i], bonePositions[i]);
-                SetRotationRelativeToRoot(bones[i], Quaternion.Euler(boneRotations[i]));
+                //SetRotationRelativeToRoot(bones[i], Quaternion.Euler(boneRotations[i]));
 
             }
         }
@@ -253,6 +266,7 @@ namespace Assets.Stage1.Scripts
                     //float pitch = Vector3.SignedAngle(line, line2, Vector3.forward);
                     //float yaw = Vector3.SignedAngle(line, line2, Vector3.up);
                     //float roll = Vector3.SignedAngle(line, line2, Vector3.right);   
+
                     Vector3 forward;
                     if (i == bonePositions.Length - 2)
                     {
@@ -263,18 +277,19 @@ namespace Assets.Stage1.Scripts
                         forward = (bonePositions[i + 1] - bonePositions[i + 2]).normalized;
                     }
 
-                    var up = Vector3.Cross(forward, Vector3.right);
-                    var right = Vector3.Cross(forward, Vector3.up);
+                    //var up = Vector3.Cross(forward, Vector3.right);
+                    //var right = Vector3.Cross(forward, Vector3.up);
 
-                    float pitch = Vector3.SignedAngle(bonePositions[i + 1], bonePositions[i], forward);
-                    float yaw = Vector3.SignedAngle(bonePositions[i + 1], bonePositions[i], up);
-                    float roll = Vector3.SignedAngle(bonePositions[i + 1], bonePositions[i], right);
-                    var constraint = constraints[i + 1];
-                    pitch = Mathf.Clamp(pitch, constraint.PitchConstraint.x, constraint.PitchConstraint.y);
-                    yaw = Mathf.Clamp(yaw, constraint.YawConstraint.x, constraint.YawConstraint.y);
-                    roll = Mathf.Clamp(roll, constraint.RollConstraint.x, constraint.RollConstraint.y);
-                    var rotation = Quaternion.Euler(pitch, yaw, roll);
-                    bonePositions[i] = rotation * (bonePositions[i] - bonePositions[i + 1]) + bonePositions[i + 1];
+                    //float pitch = Vector3.SignedAngle(bonePositions[i + 1], bonePositions[i], forward);
+                    //float yaw = Vector3.SignedAngle(bonePositions[i + 1], bonePositions[i], up);
+                    //float roll = Vector3.SignedAngle(bonePositions[i + 1], bonePositions[i], right);
+                    //var constraint = constraints[i + 1];
+                    //pitch = Mathf.Clamp(pitch, constraint.PitchConstraint.x, constraint.PitchConstraint.y);
+                    //yaw = Mathf.Clamp(yaw, constraint.YawConstraint.x, constraint.YawConstraint.y);
+                    //roll = Mathf.Clamp(roll, constraint.RollConstraint.x, constraint.RollConstraint.y);
+                    //var rotation = Quaternion.Euler(pitch, yaw, roll);
+                    //boneRotations[i] = rotation;
+                    //bonePositions[i] = rotation * (bonePositions[i] - bonePositions[i + 1]).normalized + bonePositions[i + 1];
                 }
             }
         }
@@ -312,7 +327,13 @@ namespace Assets.Stage1.Scripts
 
             return Quaternion.Inverse(t.rotation) * rootTrans.rotation;
         }
+        public Quaternion GetRotationRelativeToRoot(Quaternion r)
+        {
+            if (rootTrans == null)
+                return r;
 
+            return Quaternion.Inverse(r) * rootTrans.rotation;
+        }
         public Vector3 GetEulerRotationRelativeToRoot(Transform t)
         {
             if (rootTrans == null)
@@ -342,7 +363,9 @@ namespace Assets.Stage1.Scripts
             Gizmos.color = Color.red;
             if (stepping) Gizmos.color = Color.green;
 
-            Gizmos.DrawSphere(target.transform.position, 0.25f);
+            if (target == null) return;
+
+            //Gizmos.DrawSphere(target.transform.position, 0.25f);
         }
 
         public void SetAllConstraints(Vector2 p, Vector2 y, Vector2 r)

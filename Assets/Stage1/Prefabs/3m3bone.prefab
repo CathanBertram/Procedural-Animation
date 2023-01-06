@@ -303,6 +303,7 @@ MonoBehaviour:
   boneLengths: []
   completeLength: 0
   constraints: []
+  pole: {fileID: 0}
   canStep: 0
   pitchConstraint: {x: 0, y: 0}
   yawConstraint: {x: 0, y: 0}

@@ -30,12 +30,15 @@ namespace Assets.Stage1.Scripts
             IKController ikController = (IKController)target;
             setConstraints = false;
             setIndividualConstraints = false;
+
             if (chainFoldoutBools == null) chainFoldoutBools = new bool[1];
             if (chainIdentifyBools == null) chainFoldoutBools = new bool[1];
             if (chainScaleFloats == null) chainFoldoutBools = new bool[1];
             if (pitchConstraints == null) chainFoldoutBools = new bool[1];
             if (yawConstraints == null) chainFoldoutBools = new bool[1];
             if (rollConstraints == null) chainFoldoutBools = new bool[1];
+            if (ikController.ikChains == null) ikController.ikChains = new List<IKChain>();
+
             
             if (chainFoldoutBools.Count() != ikController.ikChains.Count)
                 chainFoldoutBools = new bool[ikController.ikChains.Count];
@@ -137,6 +140,7 @@ namespace Assets.Stage1.Scripts
                     EditorGUILayout.PropertyField(o.FindProperty("pitchConstraint"), new GUIContent("pitchConstraint"));
                     EditorGUILayout.PropertyField(o.FindProperty("yawConstraint"), new GUIContent("yawConstraint"));
                     EditorGUILayout.PropertyField(o.FindProperty("rollConstraint"), new GUIContent("rollConstraint"));
+                    EditorGUILayout.PropertyField(o.FindProperty("pole"), new GUIContent("pole"));
 
                     if (chainScaleFloats[i] <= 0)
                         chainScaleFloats[i] = 1;
